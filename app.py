@@ -4,7 +4,7 @@ from openai import OpenAI
 import pytz
 
 # --- 4. OpenAI API Key 설정 ---
-openai.api_key = st.secrets["api_key"]
+OpenAI.api_key = st.secrets["api_key"]
 
 # 타이틀 스타일 설정
 st.markdown("""
