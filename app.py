@@ -93,3 +93,36 @@ with col2:
         )
 
         st.text_area("🔍 영어 프롬프트", value=prompt, height=200)
+
+        # 이미지 생성
+        if st.button("🎨 이미지 생성하기"):
+            with st.spinner("이미지 생성 중..."):
+                try:
+                    response = openai.Image.create(
+                        model="dall-e-3",
+                        prompt=final_prompt,
+                        size="1024x1024",
+                        n=1,
+                        response_format="url"
+                    )
+                    image_url = response["data"][0]["url"]
+                    st.image(image_url, caption="🖼️ 생성된 이미지", use_container_width=True)
+                    st.markdown(f"[이미지 다운로드]({image_url})", unsafe_allow_html=True)
+
+                    # 세션에 저장
+                    if "generated_prompts" not in st.session_state:
+                        st.session_state["generated_prompts"] = []
+                    st.session_state["generated_prompts"].append({
+                        "prompt": final_prompt,
+                        "image_url": image_url
+                    })
+                except Exception as e:
+                    st.error(f"이미지 생성 오류: {e}")
+
+        # 누적된 프롬프트 & 이미지
+        if "generated_prompts" in st.session_state:
+            st.subheader("📜 이전에 생성한 결과")
+            for item in reversed(st.session_state["generated_prompts"]):
+                with st.container():
+                     st.image(item["image_url"], caption=item["prompt"], use_container_width=True)
+                    st.markdown("---")
