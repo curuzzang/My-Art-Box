@@ -1,5 +1,5 @@
 import streamlit as st
-from openai import OpenAI
+import openai
 from datetime import datetime, time
 import pytz
 import requests
