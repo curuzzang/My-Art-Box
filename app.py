@@ -6,7 +6,7 @@ import pytz
 # ---- 기본 설정 ----
 st.set_page_config(layout="wide")
 st.set_page_config(page_title="🖼️나의 그림상자 (Assistant API)", layout="wide")
-st.title("AI를 통해 생각을 시각으로, 감정을 색으로")
+st.title("🖼️나의 그림상자")
 
 # ---- 시크릿 키 및 API ----
 openai.api_key = st.secrets["api_key"]
@@ -30,7 +30,7 @@ translation_dict = {
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.subheader("🧾 이미지 프롬프트 빌더")
+    st.subheader("🧾 AI를 통해 생각을 시각으로, 감정을 색으로")
     with st.form("prompt_form"):
         theme = st.text_input("주제 (예: 내면의 평화)")
         genre = st.selectbox("스타일", list({k for k in translation_dict if '스타일' in k or '아트' in k or '풍' in k}))
