@@ -35,7 +35,7 @@ left_col, right_col = st.columns([1, 2])
 
 # ✅ 왼쪽 입력창
 with left_col:
-    st.subheader("🖍️ 나를 표현하는 키워드를 골라보세요")
+    st.subheader("🖍️ 표현하고 싶은 키워드를 골라보세요")
     custom_prompt = st.text_input("주제를 직접 입력하세요 (예: 내 안의 고요함과 혼돈)", "")
 
     style = st.selectbox("🎨 스타일", [
@@ -105,7 +105,7 @@ with right_col:
                     n=1,
                 )
                 image_url = response.data[0].url
-                st.image(image_url, caption="🎨 생성된 이미지", use_column_width=True)
+                st.image(image_url, caption="🎨 생성된 이미지", use_container_width=True)
                 st.markdown(f'<a href="{image_url}" download="my_art_box_image.png" target="_blank">📥 이미지 다운로드</a>', unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"❌ 이미지 생성 중 오류 발생: {str(e)}")
