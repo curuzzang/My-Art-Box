@@ -30,7 +30,7 @@ translation_dict = {
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.subheader("🧾 AI를 통해 생각보여주기")
+    st.subheader("🧾 AI로 생각그리기")
     with st.form("prompt_form"):
         theme = st.text_input("주제 (예: 내면의 평화)")
         genre = st.selectbox("스타일", list({k for k in translation_dict if '스타일' in k or '아트' in k or '풍' in k}))
