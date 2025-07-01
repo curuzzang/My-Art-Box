@@ -126,10 +126,10 @@ with right_col:
                 st.info("이미지를 우클릭하여 저장하거나 아래 버튼으로 다운로드하세요.")
 
                 response = requests.get(image_url)
-                if response.status_code == 200:
-                    st.download_button(
-                        label="📥 이미지 저장하기",
-                        data=response.content,
-                        file_name="my_art_box_image.png",
-                        mime="image/png"
-                    )
+        if response.status_code == 200:
+             st.download_button(
+                 label="📥 이미지 저장하기",
+                 data=response.content,
+                 file_name="my_art_box_image.png",
+                 mime="image/png"
+                 )
