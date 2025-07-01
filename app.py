@@ -78,17 +78,21 @@ with right_col:
             return translations.get(term, term)
 
         mood_eng = [translate(m) for m in mood]
+        style_eng = translate(style)
+        color_eng = translate(color)
+        viewpoint_eng = translate(viewpoint)
+
         prompt = f"A conceptual representation of '{custom_prompt}'"
         if element:
             prompt += f", including {element}"
         if mood_eng:
             prompt += f", evoking a sense of {', '.join(mood_eng)}"
-        if style:
-            prompt += f", in {style} style"
-        if color:
-            prompt += f", using {color} color tones"
-        if viewpoint:
-            prompt += f", from a {viewpoint} perspective"
+        if style_eng:
+            prompt += f", in {style_eng} style"
+        if color_eng:
+            prompt += f", using {color_eng} color tones"
+        if viewpoint_eng:
+            prompt += f", from a {viewpoint_eng} perspective"
 
         st.session_state.prompt = prompt
         st.markdown("📝 **프롬프트 (영문)**")
