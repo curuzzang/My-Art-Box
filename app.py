@@ -87,11 +87,9 @@ with right_col:
             return translations.get(term, term)
         theme_en = translate_to_english(custom_prompt)
         element_en = translate_to_english(element)
-
-      prompt = f"A conceptual representation of '{theme_en}'"
-
-    if element_en:
-        prompt += f", including {element_en}"
+        prompt = f"A conceptual representation of '{theme_en}'"
+        if element_en:
+            prompt += f", including {element_en}"
         mood_eng = [translate(m) for m in mood]
         style_eng = translate(style)
         color_eng = translate(color)
