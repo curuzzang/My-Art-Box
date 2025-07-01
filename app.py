@@ -1,74 +1,95 @@
 import streamlit as st
-import openai
 from datetime import datetime
+from openai import OpenAI
 import pytz
 
-# ---- 기본 설정 ----
-st.set_page_config(layout="wide")
+# 타이틀 스타일 설정
 st.markdown("""
-    <h1 style='text-align: center; font-size: 20px; margin-top: 5px; color: black;'>🎨 나의 그림상자 (My Art Box)</h1>
+    <h1 style='text-align: center; font-size:20px; margin-top:10px; color:black;'>🎨 나의 그림상자 (My Art Box)</h1>
 """, unsafe_allow_html=True)
 
-# ---- 시크릿 키 및 API ----
-openai.api_key = st.secrets["api_key"]
+# 시간 제한 설정
+today = datetime.now(pytz.timezone("Asia/Seoul"))
+date = today.date()
+hour = today.hour
 
-# ---- 번역 테이블 ----
+allowed = (
+    date == datetime(2025, 7, 1).date() or  # 자유 사용일
+    (date in [datetime(2025, 7, 2).date(), datetime(2025, 7, 4).date()] and 9 <= hour <= 13)
+)
+
+if not allowed:
+    st.error("⛔ 현재는 사용 가능한 시간이 아닙니다.\n\n👉 사용 가능 시간: 7월 1일 (제한 없음), 7월 2일·4일 (오전 9시~오후 1시)")
+    st.stop()
+
+# 비밀번호 입력
+password = st.text_input("🔑 비밀번호를 입력하세요", type="password")
+if password != "1234":  # 수업 당일 수동으로 바꾸세요
+    st.warning("비밀번호를 입력해야 사용 가능합니다.")
+    st.stop()
+
+# 한영 변환 사전
 translation_dict = {
-    '고요한': 'calm', '혼돈의': 'chaotic', '따뜻한': 'warm', '차가운': 'cold', '신비로운': 'mysterious',
-    '어두운': 'dark', '명랑한': 'cheerful', '감성적인': 'emotional', '몽환적인': 'dreamy', '강렬한': 'intense',
-    '단단한': 'solid', '불안한': 'anxious', '균형 잡힌': 'balanced', '파스텔': 'pastel', '비비드': 'vivid',
-    '모노톤': 'monotone', '대비 강한': 'high contrast', '차분한': 'subdued', '무지개': 'rainbow',
-    '회색조': 'grayscale', '세피아': 'sepia', '수채화': 'watercolor', '유화': 'oil painting', '드로잉': 'sketch',
-    '두들 아트': 'doodle art', '팝아트': 'pop art', '인상주의': 'impressionism', '입체주의': 'cubism',
-    '디지털 아트': 'digital art', '애니메이션': 'animation style', '사진풍': 'photorealistic',
-    '고흐 스타일': 'Van Gogh style', '모네 스타일': 'Monet style', '피카소 스타일': 'Picasso style',
-    '정면': 'frontal', '측면': 'profile', '하이앵글': 'high angle', '로우앵글': 'low angle',
-    '탑뷰': 'top view', '오버더숄더': 'over-the-shoulder', '클로즈업': 'close-up', '심도있는': 'deep focus',
-    '부드러운 초점': 'soft focus', '원근법 강조': 'perspective emphasized'
+    # 스타일
+    "수채화": "watercolor", "유화": "oil painting", "두들풍": "doodle style", "디지털 페인팅": "digital painting",
+    "일본 애니메이션풍": "Japanese anime style", "큐비즘": "cubism", "사이버펑크": "cyberpunk",
+    "팝아트": "pop art", "미니멀리즘": "minimalism", "몽환적인": "dreamlike",
+
+    # 색상 톤
+    "파스텔": "pastel", "원색": "primary color", "모노톤": "monotone", "선명한": "vivid",
+    "따뜻한": "warm", "차가운": "cool", "대비색": "complementary colors", "무채색": "achromatic",
+
+    # 감정 및 분위기
+    "고요한": "calm", "혼돈의": "chaotic", "따뜻한": "warm", "차가운": "cold", "신비로운": "mysterious",
+    "우울한": "melancholic", "경쾌한": "cheerful", "불안한": "anxious", "자유로운": "free", "감성적인": "emotional",
+
+    # 시점 및 구도
+    "정면": "frontal", "측면": "side view", "탑뷰": "top-down", "하늘을 올려다보는": "upward view",
+    "클로즈업": "close-up", "광각": "wide angle", "역광": "backlight", "소프트 포커스": "soft focus",
+    "로우 앵글": "low angle", "하이 앵글": "high angle"
 }
 
-# ---- 좌우 컬럼 ----
+# UI: 왼쪽 입력, 오른쪽 출력
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.subheader("🧾 이미지 프롬프트 빌더")
-    with st.form("prompt_form"):
-        theme = st.text_input("주제 (예: 내면의 평화)")
-        genre = st.selectbox("스타일", list({k for k in translation_dict if '스타일' in k or '아트' in k or '풍' in k}))
-        elements = st.text_input("주요 요소 (쉼표로 구분)", placeholder="예: 나무, 고양이, 달")
-        color_tone = st.selectbox("색상 톤", [k for k in translation_dict if k in ['파스텔', '비비드', '모노톤', '무지개', '세피아', '회색조', '차분한', '대비 강한']])
-        moods = st.multiselect("감정/분위기", [k for k in translation_dict if k in ['고요한', '혼돈의', '신비로운', '감성적인', '몽환적인', '불안한', '명랑한', '강렬한', '균형 잡힌', '단단한']])
-        viewpoint = st.selectbox("카메라 시점/효과", [k for k in translation_dict if '앵글' in k or '초점' in k or '시점' in k or 'view' in translation_dict[k]])
-        generate_prompt_btn = st.form_submit_button("✅ 프롬프트 생성")
+    st.subheader("🎯 프롬프트 구성하기")
+
+    theme = st.text_input("주제 (예: 내면의 평화)")
+    genre = st.selectbox("스타일", list({k for k in translation_dict if translation_dict[k] in [
+        "watercolor", "oil painting", "doodle style", "digital painting", "Japanese anime style",
+        "cubism", "cyberpunk", "pop art", "minimalism", "dreamlike"
+    ]}))
+
+    elements = st.text_area("주요 요소 (쉼표로 구분)", placeholder="예: 나무, 달, 나")
+    color = st.selectbox("색상 톤", [k for k, v in translation_dict.items() if v in [
+        "pastel", "primary color", "monotone", "vivid", "warm", "cool", "complementary colors", "achromatic"
+    ]])
+    moods = st.multiselect("감정/분위기 (다중 선택 가능)", [k for k, v in translation_dict.items() if v in [
+        "calm", "chaotic", "warm", "cold", "mysterious", "melancholic", "cheerful", "anxious", "free", "emotional"
+    ]])
+    viewpoint = st.selectbox("카메라 시점/효과", [k for k, v in translation_dict.items() if v in [
+        "frontal", "side view", "top-down", "upward view", "close-up", "wide angle",
+        "backlight", "soft focus", "low angle", "high angle"
+    ]])
+
+    generate = st.button("✨ 프롬프트 생성하기")
 
 with col2:
-    if generate_prompt_btn:
-        # 영어로 번역
+    st.subheader("🧾 생성된 프롬프트")
+
+    if generate:
         genre_en = translation_dict.get(genre, genre)
-        elements_en = ', '.join([e.strip() for e in elements.split(",")])
-        color_en = translation_dict.get(color_tone, color_tone)
-        mood_en = ', '.join([translation_dict.get(m, m) for m in moods])
+        elements_en = elements  # 사용자가 직접 입력
+        color_en = translation_dict.get(color, color)
+        moods_en = ", ".join([translation_dict.get(m, m) for m in moods])
         viewpoint_en = translation_dict.get(viewpoint, viewpoint)
 
-        # 프롬프트 구성
-        final_prompt = f"Create an image that expresses '{theme}' in {genre_en} style. Include {elements_en}, use {color_en} color tones to convey a feeling of {mood_en}, captured from a {viewpoint_en} perspective."
+        prompt = (
+            f"Create an image that expresses '{theme}' in a {genre_en} style. "
+            f"Be sure to include {elements_en}, and use {color_en} color tones to convey a feeling of {moods_en}, "
+            f"captured from a {viewpoint_en} perspective. "
+            f"Include subtle details that emphasize the emotional nuance of '{theme}'."
+        )
 
-        st.success("🖋️ 생성된 프롬프트:")
-        st.code(final_prompt, language="text")
-
-        # 이미지 생성
-        if st.button("🎨 이미지 생성하기"):
-            with st.spinner("이미지 생성 중..."):
-                try:
-                    response = openai.Image.create(
-                        model="dall-e-3",
-                        prompt=final_prompt,
-                        size="1024x1024",
-                        n=1,
-                        response_format="url"
-                    )
-                    image_url = response["data"][0]["url"]
-                    st.image(image_url, caption="🖼️ 생성된 이미지", use_container_width=True)
-                    st.markdown(f"[이미지 다운로드]({image_url})", unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"이미지 생성 오류: {e}")
+        st.text_area("🔍 영어 프롬프트", value=prompt, height=200)
