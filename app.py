@@ -127,9 +127,9 @@ with right_col:
 
                 response = requests.get(image_url)
                 if response.status_code == 200:
-                st.download_button(
-                label="📥 이미지 저장하기",
-                data=response.content,
-                file_name="my_art_box_image.png",
-                mime="image/png"
-    )
+                    st.download_button(
+                        label="📥 이미지 저장하기",
+                        data=response.content,
+                        file_name="my_art_box_image.png",
+                        mime="image/png"
+                    )
