@@ -112,7 +112,7 @@ with col2:
                     # 세션에 저장
                     if "generated_prompts" not in st.session_state:
                         st.session_state["generated_prompts"] = []
-                    st.session_state["generated_prompts"].append({
+                        st.session_state["generated_prompts"].append({
                         "prompt": final_prompt,
                         "image_url": image_url
                     })
@@ -125,4 +125,4 @@ with col2:
             for item in reversed(st.session_state["generated_prompts"]):
                 with st.container():
                      st.image(item["image_url"], caption=item["prompt"], use_container_width=True)
-                    st.markdown("---")
+                     st.markdown("---")
