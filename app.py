@@ -68,7 +68,7 @@ with col2:
         # 누적 프롬프트와 이미지 표시
         st.subheader("🖼 생성된 이미지와 프롬프트")
         for item in reversed(st.session_state["generated_prompts"]):
-        with st.container():
+            with st.container():
         st.image(item["image_url"], caption=item["prompt"], use_container_width=True)
         st.markdown("---")
 
