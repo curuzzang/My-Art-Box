@@ -2,6 +2,7 @@ import streamlit as st
 from openai import OpenAI
 from datetime import datetime, time
 import pytz
+import requests
 from googletrans import Translator
 
 translator = Translator()
