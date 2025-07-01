@@ -1,9 +1,11 @@
 import streamlit as st
-from openai import OpenAI
+import openai
 from datetime import datetime, time
 import pytz
 import requests
 from googletrans import Translator
+
+client = openai.OpenAI(api_key=st.secrets["api_key"])
 
 # ✅ 번역기 초기화
 translator = Translator()
