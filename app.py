@@ -2,6 +2,15 @@ import streamlit as st
 from openai import OpenAI
 from datetime import datetime, time
 import pytz
+from googletrans import Translator
+
+translator = Translator()
+
+def translate_to_english(text):
+    try:
+        return translator.translate(text, src='ko', dest='en').text
+    except:
+        return text  # 실패 시 원문 그대로 반환
 
 # ✅ 비밀키 설정 (Streamlit secrets에 저장 필요)
 client = OpenAI(api_key=st.secrets["api_key"])
@@ -76,7 +85,13 @@ with right_col:
                 "단단한": "solid", "불안한": "anxious", "균형 잡힌": "balanced"
             }
             return translations.get(term, term)
+        theme_en = translate_to_english(custom_prompt)
+        element_en = translate_to_english(element)
 
+      prompt = f"A conceptual representation of '{theme_en}'"
+
+    if element_en:
+        prompt += f", including {element_en}"
         mood_eng = [translate(m) for m in mood]
         style_eng = translate(style)
         color_eng = translate(color)
