@@ -30,17 +30,6 @@ if today not in allowed_dates or not (allowed_time[0] <= now.time() <= allowed_t
         st.error("⛔ 이 웹앱은 다음 시간에만 사용 가능합니다:\n\n📅 7월 1일(테스트), 7월 2일(화), 7월 4일(목) ⏰ 오전 9시 ~ 오후 1시 (KST)")
         st.stop()
 
-# ✅ 비밀번호 인증
-if not st.session_state.authenticated:
-    pw = st.text_input("🔐 수업 비밀번호를 입력하세요:", type="password")
-    if st.button("입장하기"):
-        if pw == st.secrets["password"]:
-            st.session_state.authenticated = True
-            st.success("✅ 인증 성공! 수업에 입장합니다.")
-        else:
-            st.error("❌ 비밀번호가 틀렸습니다.")
-    st.stop()
-
 # ✅ 좌우 레이아웃
 left_col, right_col = st.columns([1, 2])
 
