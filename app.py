@@ -1,125 +1,122 @@
 import streamlit as st
-from datetime import datetime
 from openai import OpenAI
+from datetime import datetime, time
 import pytz
 
-# --- 4. OpenAI API Key 설정 ---
-OpenAI.api_key = st.secrets["api_key"]
+# ✅ 비밀키 설정 (Streamlit secrets에 저장 필요)
+client = OpenAI(api_key=st.secrets["api_key"])
 
-# 타이틀 스타일 설정
+# ✅ 사용 가능한 날짜 및 시간 설정
+korea = pytz.timezone("Asia/Seoul")
+now = datetime.now(korea)
+today = now.date()
+allowed_dates = [datetime(2025, 7, 1).date(), datetime(2025, 7, 2).date(), datetime(2025, 7, 4).date()]
+allowed_time = (time(9, 0), time(13, 0))  # 오전 9시~오후 1시
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+# ✅ 타이틀
 st.markdown("""
-    <h1 style='text-align: center; font-size:20px; margin-top:10px; color:black;'>🎨 나의 그림상자 (My Art Box)</h1>
+<h1 style='text-align: center; font-size: 20px; color: black; margin-top: 10px;
+           background: linear-gradient(to right, #f8cdda, #e6eeff); padding: 10px; border-radius: 10px;'>
+    🎨 나의 그림상자 (My Art Box)
+</h1>
 """, unsafe_allow_html=True)
 
-# 시간 제한 설정
-today = datetime.now(pytz.timezone("Asia/Seoul"))
-date = today.date()
-hour = today.hour
+# ✅ 시간 제한
+if today not in allowed_dates or not (allowed_time[0] <= now.time() <= allowed_time[1]):
+    if today != datetime(2025, 7, 1).date():
+        st.error("⛔ 이 웹앱은 다음 시간에만 사용 가능합니다:\n\n📅 7월 1일(테스트), 7월 2일(화), 7월 4일(목) ⏰ 오전 9시 ~ 오후 1시 (KST)")
+        st.stop()
 
-allowed = (
-    date == datetime(2025, 7, 1).date() or  # 자유 사용일
-    (date in [datetime(2025, 7, 2).date(), datetime(2025, 7, 4).date()] and 9 <= hour <= 13)
-)
-
-if not allowed:
-    st.error("⛔ 현재는 사용 가능한 시간이 아닙니다.\n\n👉 사용 가능 시간: 7월 1일 (제한 없음), 7월 2일·4일 (오전 9시~오후 1시)")
+# ✅ 비밀번호 인증
+if not st.session_state.authenticated:
+    pw = st.text_input("🔐 수업 비밀번호를 입력하세요:", type="password")
+    if st.button("입장하기"):
+        if pw == st.secrets["password"]:
+            st.session_state.authenticated = True
+            st.success("✅ 인증 성공! 수업에 입장합니다.")
+        else:
+            st.error("❌ 비밀번호가 틀렸습니다.")
     st.stop()
 
-# 비밀번호 입력
-password = st.text_input("🔑 비밀번호를 입력하세요", type="password")
-if password != "1234":  # 수업 당일 수동으로 바꾸세요
-    st.warning("비밀번호를 입력해야 사용 가능합니다.")
-    st.stop()
+# ✅ 좌우 레이아웃
+left_col, right_col = st.columns([1, 2])
 
-# 한영 변환 사전
-translation_dict = {
-    # 스타일
-    "수채화": "watercolor", "유화": "oil painting", "두들풍": "doodle style", "디지털 페인팅": "digital painting",
-    "일본 애니메이션풍": "Japanese anime style", "큐비즘": "cubism", "사이버펑크": "cyberpunk",
-    "팝아트": "pop art", "미니멀리즘": "minimalism", "몽환적인": "dreamlike",
+# ✅ 왼쪽 입력창
+with left_col:
+    st.subheader("🖍️ 나를 표현하는 키워드를 골라보세요")
+    custom_prompt = st.text_input("주제를 직접 입력하세요 (예: 내 안의 고요함과 혼돈)", "")
 
-    # 색상 톤
-    "파스텔": "pastel", "원색": "primary color", "모노톤": "monotone", "선명한": "vivid",
-    "따뜻한": "warm", "차가운": "cool", "대비색": "complementary colors", "무채색": "achromatic",
+    style = st.selectbox("🎨 스타일", [
+        "수채화", "유화", "드로잉", "두들 아트", "팝아트",
+        "인상주의", "입체주의", "디지털 아트", "애니메이션",
+        "사진풍", "고흐 스타일", "모네 스타일", "피카소 스타일"
+    ])
 
-    # 감정 및 분위기
-    "고요한": "calm", "혼돈의": "chaotic", "따뜻한": "warm", "차가운": "cold", "신비로운": "mysterious",
-    "우울한": "melancholic", "경쾌한": "cheerful", "불안한": "anxious", "자유로운": "free", "감성적인": "emotional",
+    color = st.selectbox("🌈 색상 톤", [
+        "파스텔", "비비드", "모노톤", "대비 강한",
+        "차분한", "무지개", "회색조", "세피아"
+    ])
 
-    # 시점 및 구도
-    "정면": "frontal", "측면": "side view", "탑뷰": "top-down", "하늘을 올려다보는": "upward view",
-    "클로즈업": "close-up", "광각": "wide angle", "역광": "backlight", "소프트 포커스": "soft focus",
-    "로우 앵글": "low angle", "하이 앵글": "high angle"
-}
+    mood = st.multiselect("💫 감정·분위기", [
+        "고요한", "혼돈의", "따뜻한", "차가운",
+        "신비로운", "어두운", "명랑한", "감성적인",
+        "몽환적인", "강렬한", "단단한", "불안한", "균형 잡힌"
+    ])
 
-# UI: 왼쪽 입력, 오른쪽 출력
-col1, col2 = st.columns([1, 2])
+    viewpoint = st.selectbox("📷 시점·구도", [
+        "정면", "측면", "하이앵글", "로우앵글",
+        "탑뷰", "오버더숄더", "클로즈업",
+        "심도있는", "부드러운 초점", "원근법 강조"
+    ])
 
-with col1:
-    st.subheader("🎯 프롬프트 구성하기")
+    element = st.text_area("🔍 주요 요소 직접 입력 (예: 뿌리, 나무, 나선형, 별, 나침반)", "")
 
-    theme = st.text_input("주제 (예: 내면의 평화)")
-    genre = st.selectbox("스타일", list({k for k in translation_dict if translation_dict[k] in [
-        "watercolor", "oil painting", "doodle style", "digital painting", "Japanese anime style",
-        "cubism", "cyberpunk", "pop art", "minimalism", "dreamlike"
-    ]}))
+# ✅ 오른쪽: 프롬프트 생성 및 이미지 생성
+with right_col:
+    st.subheader("✨ 프롬프트 및 이미지 결과")
 
-    elements = st.text_area("주요 요소 (쉼표로 구분)", placeholder="예: 나무, 달, 나")
-    color = st.selectbox("색상 톤", [k for k, v in translation_dict.items() if v in [
-        "pastel", "primary color", "monotone", "vivid", "warm", "cool", "complementary colors", "achromatic"
-    ]])
-    moods = st.multiselect("감정/분위기 (다중 선택 가능)", [k for k, v in translation_dict.items() if v in [
-        "calm", "chaotic", "warm", "cold", "mysterious", "melancholic", "cheerful", "anxious", "free", "emotional"
-    ]])
-    viewpoint = st.selectbox("카메라 시점/효과", [k for k, v in translation_dict.items() if v in [
-        "frontal", "side view", "top-down", "upward view", "close-up", "wide angle",
-        "backlight", "soft focus", "low angle", "high angle"
-    ]])
+    if st.button("🎯 프롬프트 생성하기"):
+        def translate(term):
+            translations = {
+                "고요한": "calm", "혼돈의": "chaotic", "따뜻한": "warm", "차가운": "cold",
+                "신비로운": "mysterious", "어두운": "dark", "명랑한": "cheerful",
+                "감성적인": "emotional", "몽환적인": "dreamy", "강렬한": "intense",
+                "단단한": "solid", "불안한": "anxious", "균형 잡힌": "balanced"
+            }
+            return translations.get(term, term)
 
-    generate = st.button("✨ 프롬프트 생성하기")
+        mood_eng = [translate(m) for m in mood]
+        prompt = f"A conceptual representation of '{custom_prompt}'"
+        if element:
+            prompt += f", including {element}"
+        if mood_eng:
+            prompt += f", evoking a sense of {', '.join(mood_eng)}"
+        if style:
+            prompt += f", in {style} style"
+        if color:
+            prompt += f", using {color} color tones"
+        if viewpoint:
+            prompt += f", from a {viewpoint} perspective"
 
-with col2:
-    st.subheader("🧾 생성된 프롬프트")
+        st.session_state.prompt = prompt
+        st.markdown("📝 **프롬프트 (영문)**")
+        st.code(prompt)
 
-    if generate:
-        genre_en = translation_dict.get(genre, genre)
-        elements_en = elements  # 사용자가 직접 입력
-        color_en = translation_dict.get(color, color)
-        moods_en = ", ".join([translation_dict.get(m, m) for m in moods])
-        viewpoint_en = translation_dict.get(viewpoint, viewpoint)
-
-        prompt = (
-            f"Create an image that expresses '{theme}' in a {genre_en} style. "
-            f"Be sure to include {elements_en}, and use {color_en} color tones to convey a feeling of {moods_en}, "
-            f"captured from a {viewpoint_en} perspective. "
-            f"Include subtle details that emphasize the emotional nuance of '{theme}'."
-        )
-
-        st.text_area("🔍 영어 프롬프트", value=prompt, height=200)
-
-        # 이미지 생성
-if st.button("🎨 이미지 생성하기"):
-    with st.spinner("🖼️ 이미지 생성 중입니다. 잠시만 기다려주세요..."):
-        try:
-            client = OpenAI()  # 최신 API 방식
-            response = client.images.generate(
-                model="dall-e-3",
-                prompt=prompt,
-                size="1024x1024",
-                n=1
-            )
-            image_url = response.data[0].url
-
-            st.image(image_url, caption="🖼️ 생성된 이미지", use_container_width=True)
-            st.markdown(f"[🖼️ 이미지 다운로드]({image_url})", unsafe_allow_html=True)
-
-            # 세션에 저장
-            if "generated_prompts" not in st.session_state:
-                st.session_state["generated_prompts"] = []
-            st.session_state["generated_prompts"].append({
-                "prompt": prompt,
-                "image_url": image_url
-            })
-
-        except Exception as e:
-            st.error(f"❌ 이미지 생성 오류: {e}")
+    if "prompt" in st.session_state:
+        if st.button("🖼️ 이미지 생성하기"):
+            try:
+                response = client.images.generate(
+                    model="dall-e-3",
+                    prompt=st.session_state.prompt,
+                    size="1024x1024",
+                    quality="standard",
+                    n=1,
+                )
+                image_url = response.data[0].url
+                st.image(image_url, caption="🎨 생성된 이미지", use_column_width=True)
+                st.markdown(f'<a href="{image_url}" download="my_art_box_image.png" target="_blank">📥 이미지 다운로드</a>', unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"❌ 이미지 생성 중 오류 발생: {str(e)}")
