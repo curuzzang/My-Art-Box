@@ -1,9 +1,12 @@
 import streamlit as st
-import openai
 from datetime import datetime, time
 import pytz
 import requests
 from googletrans import Translator
+from openai import OpenAI
+
+client = OpenAI(api_key=st.secrets["api_key"]) 
+
 
 # ✅ 번역기 초기화
 translator = Translator()
@@ -39,9 +42,6 @@ def translate(term):
         "원근법 강조": "with strong perspective"
     }
     return translations.get(term, term)
-
-# ✅ OpenAI 클라이언트 설정
-client = OpenAI(api_key=st.secrets["api_key"])
 
 # ✅ 날짜 & 시간 제한
 korea = pytz.timezone("Asia/Seoul")
