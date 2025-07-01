@@ -69,8 +69,8 @@ with col2:
         st.subheader("🖼 생성된 이미지와 프롬프트")
         for item in reversed(st.session_state["generated_prompts"]):
             with st.container():
-            st.image(item["image_url"], caption=item["prompt"], use_container_width=True)
-            st.markdown("---")
+                st.image(item["image_url"], caption=item["prompt"], use_container_width=True)
+                st.markdown("---")
 
         # 이미지 생성
         if st.button("🎨 이미지 생성하기"):
