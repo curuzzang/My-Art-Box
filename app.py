@@ -3,6 +3,9 @@ from datetime import datetime
 from openai import OpenAI
 import pytz
 
+# --- 4. OpenAI API Key 설정 ---
+openai.api_key = st.secrets["api_key"]
+
 # 타이틀 스타일 설정
 st.markdown("""
     <h1 style='text-align: center; font-size:20px; margin-top:10px; color:black;'>🎨 나의 그림상자 (My Art Box)</h1>
