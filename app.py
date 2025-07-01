@@ -5,8 +5,8 @@ import pytz
 
 # ---- 기본 설정 ----
 st.set_page_config(layout="wide")
-st.set_page_config(page_title="나의 그림상자 (Assistant API)", layout="wide")
-st.title("🖼️ 나의 그림상자 - AI와 함께 콜라주 만들기")
+st.set_page_config(page_title="🖼️나의 그림상자 (Assistant API)", layout="wide")
+st.title("AI를 통해 생각을 시각으로, 감정을 색으로")
 
 # ---- 시크릿 키 및 API ----
 openai.api_key = st.secrets["api_key"]
@@ -54,6 +54,23 @@ with col2:
 
         st.success("🖋️ 생성된 프롬프트:")
         st.code(final_prompt, language="text")
+
+        # 초기화
+        if "generated_prompts" not in st.session_state:
+            st.session_state["generated_prompts"] = []
+
+        # 프롬프트 생성 후 저장
+        st.session_state["generated_prompts"].append({
+        "prompt": final_english_prompt,
+        "image_url": generated_image_url  # 이미지 생성 후
+        })
+
+        # 누적 프롬프트와 이미지 표시
+        st.subheader("🖼 생성된 이미지와 프롬프트")
+        for item in reversed(st.session_state["generated_prompts"]):
+        with st.container():
+        st.image(item["image_url"], caption=item["prompt"], use_container_width=True)
+        st.markdown("---")
 
         # 이미지 생성
         if st.button("🎨 이미지 생성하기"):
