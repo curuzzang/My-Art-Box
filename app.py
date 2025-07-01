@@ -5,9 +5,8 @@ import pytz
 
 # ---- 기본 설정 ----
 st.set_page_config(layout="wide")
-st.markdown("""
-    <h1 style='text-align: center; font-size: 20px; margin-top: 5px; color: black;'>🎨 나의 그림상자 (My Art Box)</h1>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="나의 그림상자 (Assistant API)", layout="wide")
+st.title("🖼️ 나의 그림상자 - AI와 함께 콜라주 만들기")
 
 # ---- 시크릿 키 및 API ----
 openai.api_key = st.secrets["api_key"]
