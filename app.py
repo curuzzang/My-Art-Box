@@ -125,6 +125,13 @@ with right_col:
                 )
                 image_url = response.data[0].url
                 st.image(image_url, caption="🎨 생성된 이미지", use_container_width=True)
-                st.markdown(f'<a href="{image_url}" download="my_art_box_image.png" target="_blank">📥 이미지 다운로드</a>', unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"❌ 이미지 생성 중 오류 발생: {str(e)}")
+                st.info("이미지를 우클릭하여 저장하거나 아래 버튼으로 다운로드하세요.")
+
+                response = requests.get(image_url)
+                if response.status_code == 200:
+                st.download_button(
+                label="📥 이미지 저장하기",
+                data=response.content,
+                file_name="my_art_box_image.png",
+                mime="image/png"
+    )
