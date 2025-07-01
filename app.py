@@ -111,25 +111,32 @@ with right_col:
         st.markdown("📝 **프롬프트 (영문)**")
         st.code(prompt)
 
-    if "prompt" in st.session_state:
-        if st.button("🖼️ 이미지 생성하기"):
-            try:
-                response = client.images.generate(
-                    model="dall-e-3",
-                    prompt=st.session_state.prompt,
-                    size="1024x1024",
-                    quality="standard",
-                    n=1,
-                )
-                image_url = response.data[0].url
-                st.image(image_url, caption="🎨 생성된 이미지", use_container_width=True)
-                st.info("이미지를 우클릭하여 저장하거나 아래 버튼으로 다운로드하세요.")
+    import requests  # requests가 필요합니다. 상단에 추가되어 있어야 함
 
-                response = requests.get(image_url)
-        if response.status_code == 200:
-             st.download_button(
-                 label="📥 이미지 저장하기",
-                 data=response.content,
-                 file_name="my_art_box_image.png",
-                 mime="image/png"
-                 )
+if "prompt" in st.session_state:
+    if st.button("🖼️ 이미지 생성하기"):
+        try:
+            response = client.images.generate(
+                model="dall-e-3",
+                prompt=st.session_state.prompt,
+                size="1024x1024",
+                quality="standard",
+                n=1,
+            )
+            image_url = response.data[0].url
+            st.image(image_url, caption="🎨 생성된 이미지", use_container_width=True)
+            st.info("이미지를 우클릭하여 저장하거나 아래 버튼으로 다운로드하세요.")
+
+            # 이미지 다운로드 요청
+            img_response = requests.get(image_url)
+            if img_response.status_code == 200:
+                st.download_button(
+                    label="📥 이미지 저장하기",
+                    data=img_response.content,
+                    file_name="my_art_box_image.png",
+                    mime="image/png"
+                )
+            else:
+                st.warning("이미지를 불러오지 못했습니다.")
+        except Exception as e:
+            st.error(f"❌ 이미지 생성 또는 다운로드 중 오류 발생: {str(e)}")
